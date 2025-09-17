@@ -5,7 +5,6 @@
 #include <string>
 #include <ctime>
 #include <nlohmann/json.hpp>
-#include <mqtt/async_client.h>
 
 using json = nlohmann::json;
 
