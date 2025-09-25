@@ -26,15 +26,12 @@ void setup() {
 }
 
 void loop() {
-  static unsigned long lastPrint = 0;
-  if (millis() - lastPrint > 1000) {
-    Serial.print("Holding registers: ");
+  if (ModbusRTUServer.poll()) {
+    Serial.print("Modbus request received. Current holding registers: ");
     for (int i = 0; i < 5; i++) {
       Serial.print(ModbusRTUServer.holdingRegisterRead(i));
       if (i < 4) Serial.print(", ");
     }
     Serial.println();
-    lastPrint = millis();
   }
-  ModbusRTUServer.poll();
 }
