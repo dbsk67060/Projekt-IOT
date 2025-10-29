@@ -20,16 +20,16 @@ uint16_t regs[2] = {0};
 // Pretty-print Modbus errors
 static const char* mbErr2str(Modbus::ResultCode e) {
   switch (e) {
-    case Modbus::EX_SUCCESS: return "EX_SUCCESS";
-    case Modbus::EX_ILLEGAL_FUNCTION: return "EX_ILLEGAL_FUNCTION";
-    case Modbus::EX_ILLEGAL_ADDRESS:  return "EX_ILLEGAL_ADDRESS";
-    case Modbus::EX_ILLEGAL_VALUE:    return "EX_ILLEGAL_VALUE";
-    case Modbus::EX_SLAVE_FAILURE:    return "EX_SLAVE_FAILURE";
-    case Modbus::EX_ACKNOWLEDGE:      return "EX_ACKNOWLEDGE";
-    case Modbus::EX_SLAVE_DEVICE_BUSY:return "EX_SLAVE_DEVICE_BUSY";
-    case Modbus::EX_MEMORY_PARITY_ERROR:return "EX_MEMORY_PARITY_ERROR";
-    case Modbus::EX_TIMEOUT:          return "EX_TIMEOUT";
-    default:                          return "EX_UNKNOWN"; // some library versions omit certain TCP-only codes
+    case Modbus::EX_SUCCESS:             return "EX_SUCCESS";
+    case Modbus::EX_ILLEGAL_FUNCTION:    return "EX_ILLEGAL_FUNCTION";
+    case Modbus::EX_ILLEGAL_ADDRESS:     return "EX_ILLEGAL_ADDRESS";
+    case Modbus::EX_ILLEGAL_VALUE:       return "EX_ILLEGAL_VALUE";
+    case Modbus::EX_SLAVE_FAILURE:       return "EX_SLAVE_FAILURE";
+    case Modbus::EX_ACKNOWLEDGE:         return "EX_ACKNOWLEDGE";
+    case Modbus::EX_SLAVE_DEVICE_BUSY:   return "EX_SLAVE_DEVICE_BUSY";
+    case Modbus::EX_MEMORY_PARITY_ERROR: return "EX_MEMORY_PARITY_ERROR";
+    case Modbus::EX_TIMEOUT:             return "EX_TIMEOUT";
+    default:                             return "EX_UNKNOWN"; // some library versions omit certain TCP-only codes
   }
 }
 
