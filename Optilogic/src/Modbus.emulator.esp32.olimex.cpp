@@ -47,7 +47,7 @@ static bool cbRead(Modbus::ResultCode event, uint16_t transactionId, void* data)
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(200);
 
   Serial.println();
