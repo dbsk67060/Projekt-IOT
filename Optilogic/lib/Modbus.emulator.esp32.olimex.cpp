@@ -10,7 +10,7 @@ HardwareSerial RS485(2);
 // Adjust pins if your specific Olimex model maps UEXT UART differently
 static const int RS485_TX    = 17;   // ESP32 TX -> RS485 DI
 static const int RS485_RX    = 16;   // ESP32 RX <- RS485 RO
-static const int RS485_DE_RE = 4;    // GPIO to drive RE/DE (HIGH=TX, LOW=RX)
+static const int RS485_DE_RE = 33;   // ESP32-POE UEXT pin7 -> RS485 DE/RE (HIGH=TX, LOW=RX)
 
 ModbusRTU mb;
 
@@ -52,11 +52,12 @@ void setup() {
 
   Serial.println();
   Serial.println(F("=== Modbus RTU MASTER (ESP32 -> Windows slave) ==="));
-  Serial.println(F("UART2 pins: TX=17, RX=16, RE/DE=4, 9600 8N1"));
+  Serial.println(F("UART2 pins: TX=17, RX=16, RE/DE=33, 9600 8N1"));
   Serial.println(F("Polling slave ID 1: Holding Registers 0..1 hver 1s"));
 
   // Bring up RS-485 UART and Modbus master
   RS485.begin(9600, SERIAL_8N1, RS485_RX, RS485_TX);
+  RS485.setTimeout(2000);
   mb.begin(&RS485, RS485_DE_RE);   // library controls DE/RE automatically
   mb.setBaudrate(9600);
   mb.master();
