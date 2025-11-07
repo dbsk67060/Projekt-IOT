@@ -1,3 +1,7 @@
+#include <ModbusMaster.h> 
+// Opret ModbusMaster instans 
+ModbusMaster node; 
+
 // RS485 pin-konfiguration for Olimex ESP32-PoE 
 #define RXD2 16 
 #define TXD2 17 
