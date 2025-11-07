@@ -26,9 +26,9 @@ void setup() {
   Serial2.begin(9600, SERIAL_8N1, RS485_RX_PIN, RS485_TX_PIN);
 
   pinMode(RS485_DE_PIN, OUTPUT);
-  pinMode(RS485_RE_PIN, OUTPUT);
+  //pinMode(RS485_RE_PIN, OUTPUT);
   digitalWrite(RS485_DE_PIN, LOW);
-  digitalWrite(RS485_RE_PIN, LOW);
+  //digitalWrite(RS485_RE_PIN, LOW);
 
   pinMode(GreenPin, OUTPUT);
 
