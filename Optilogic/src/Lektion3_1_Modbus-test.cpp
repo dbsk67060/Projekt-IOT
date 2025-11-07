@@ -13,7 +13,7 @@ void setup() {
   Serial.println("\n--- Modbus RTU test start ---");
 
   // Start RS485 (9600 baud, 8N1, RX=16, TX=17)
-  RS485_SERIAL_PORT.begin(9600, SERIAL_8N1, 16, 17);
+  RS485_SERIAL_PORT.begin(9600, SERIAL_8N1, 36, 4);
 
   // Konfigurer RS485 retningspin
   pinMode(RS485_DE_RE_PIN, OUTPUT);
