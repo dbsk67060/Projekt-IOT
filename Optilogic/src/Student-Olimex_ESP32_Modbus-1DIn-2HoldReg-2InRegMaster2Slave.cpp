@@ -6,8 +6,7 @@
 // ================ MODBUS COMMUNICATION CONFIGURATION ================
 #define RX_PIN 16           // UART2 RX pin
 #define TX_PIN 17            // UART2 TX pin
-#define MAX485_DE 22         // RS485 Driver Enable pin
-#define MAX485_RE_NEG 22    // RS485 Receiver Enable pin (active low)
+#define MAX485_RE_DE 22      // RS485 Driver/Receiver control (HIGH=TX, LOW=RX)
 #define BAUD_RATE 9600      // Communication speed
 #define MODBUS_SLAVE_ID 1  // Slave device address
 
@@ -23,25 +22,49 @@ ModbusMaster modbus;
 
 // Function to prepare for data transmission
 void preTransmission() {
-  digitalWrite(MAX485_RE_NEG, HIGH);  // Disable receiver
-  digitalWrite(MAX485_DE, HIGH);      // Enable driver
+  // Ensure bus is idle before enabling driver
+  delayMicroseconds(200);
+  digitalWrite(MAX485_RE_DE, HIGH);  // Driver on, Receiver off
+  // Allow driver to settle before sending first byte
+  delayMicroseconds(200);
 }
 
 // Function to clean up after data transmission
 void postTransmission() {
-  digitalWrite(MAX485_RE_NEG, LOW);   // Enable receiver
-  digitalWrite(MAX485_DE, LOW);       // Disable driver
+  // Make sure all bytes have left the UART shift register
+  Serial2.flush();
+  // Guard time after last byte to satisfy t3.5 (~3.5 char times)
+  delayMicroseconds(400);
+  digitalWrite(MAX485_RE_DE, LOW);   // Receiver on, Driver off
+  // Allow the transceiver to switch to RX before the slave starts to answer
+  delayMicroseconds(200);
 }
 
 // === Autoprobe candidates
 struct UartCfg { uint32_t baud; uint32_t framing; const char* name; };
 UartCfg UART_CANDIDATES[] = {
-  {9600,  SERIAL_8N1, "9600-8N1"},
-  {9600,  SERIAL_8E1, "9600-8E1"},
-  {19200, SERIAL_8N1, "19200-8N1"},
-  {19200, SERIAL_8E1, "19200-8E1"},
+  {4800,  SERIAL_8N1,  "4800-8N1"},
+  {4800,  SERIAL_8E1,  "4800-8E1"},
+#ifdef SERIAL_8O1
+  {4800,  SERIAL_8O1,  "4800-8O1"},
+#endif
+  {9600,  SERIAL_8N1,  "9600-8N1"},
+  {9600,  SERIAL_8E1,  "9600-8E1"},
+#ifdef SERIAL_8O1
+  {9600,  SERIAL_8O1,  "9600-8O1"},
+#endif
+  {19200, SERIAL_8N1,  "19200-8N1"},
+  {19200, SERIAL_8E1,  "19200-8E1"},
+#ifdef SERIAL_8O1
+  {19200, SERIAL_8O1,  "19200-8O1"},
+#endif
+  {38400, SERIAL_8N1,  "38400-8N1"},
+  {38400, SERIAL_8E1,  "38400-8E1"},
+#ifdef SERIAL_8O1
+  {38400, SERIAL_8O1,  "38400-8O1"},
+#endif
 };
-uint8_t ID_CANDIDATES[] = {1,2,3,4};
+uint8_t ID_CANDIDATES[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 // Active config (initialized from defines, may be overridden by autoProbe)
 uint32_t activeBaud = BAUD_RATE;
@@ -54,6 +77,12 @@ bool tryReadOnce() {
     inputRegs[0] = modbus.getResponseBuffer(0);
     return true;
   }
+  // Non-intrusive peek at the UART RX buffer after the transaction
+  int avail = Serial2.available();
+  if (avail > 0) {
+    Serial.printf("  (diag) saw %d raw bytes on RX but parse failed\n", avail);
+    while (Serial2.available()) Serial2.read();
+  }
   return false;
 }
 
@@ -61,6 +90,8 @@ bool probeCombo(uint32_t baud, uint32_t framing, uint8_t id) {
   Serial2.end();
   delay(20);
   Serial2.begin(baud, framing, RX_PIN, TX_PIN);
+  Serial2.setTimeout(200);
+  while (Serial2.available()) Serial2.read();
   modbus.begin(id, Serial2);
   modbus.preTransmission(preTransmission);
   modbus.postTransmission(postTransmission);
@@ -111,12 +142,19 @@ void autoProbe()
 #define MODBUS_RETRIES 1
 #endif
 
+const char* framingToName(uint32_t f) {
+  if (f == SERIAL_8N1) return "8N1";
+  if (f == SERIAL_8E1) return "8E1";
+#ifdef SERIAL_8O1
+  if (f == SERIAL_8O1) return "8O1";
+#endif
+  return "?";
+}
+
 void setup() {
-  // Initialize RS485 control pins
-  pinMode(MAX485_RE_NEG, OUTPUT);
-  pinMode(MAX485_DE, OUTPUT);
-  digitalWrite(MAX485_RE_NEG, LOW);
-  digitalWrite(MAX485_DE, LOW);
+  // Initialize RS485 control pin
+  pinMode(MAX485_RE_DE, OUTPUT);
+  digitalWrite(MAX485_RE_DE, LOW);   // idle in receive mode
 
   // Start serial communication for debugging
   Serial.begin(115200);
@@ -124,6 +162,8 @@ void setup() {
 
   // Configure UART2 for Modbus communication
   Serial2.begin(BAUD_RATE, SERIAL_CONFIG, RX_PIN, TX_PIN);
+  Serial2.setTimeout(200);
+  while (Serial2.available()) Serial2.read();
 
   // Initialize Modbus master with slave ID and UART2
   modbus.begin(MODBUS_SLAVE_ID, Serial2);
@@ -143,7 +183,7 @@ void setup() {
   modbus.preTransmission(preTransmission);
   modbus.postTransmission(postTransmission);
 
-  Serial.printf("Modbus RTU ready: baud=%lu, framing=%s, slaveID=%u\n", (unsigned long)activeBaud, (activeFraming==SERIAL_8E1?"8E1":"8N1"), activeId);
+  Serial.printf("Modbus RTU ready: baud=%lu, framing=%s, slaveID=%u\n", (unsigned long)activeBaud, framingToName(activeFraming), activeId);
 }
 
 // Helper: print detailed Modbus error cause
@@ -163,6 +203,7 @@ void printModbusError(uint8_t result, const char* when) {
 
 // Function to read input registers (e.g., motor RPM)
 void readInputRegisters() {
+  while (Serial2.available()) Serial2.read();
   // Attempt to read 1 input register starting at address 0 (note: device docs often show 30001 -> address 0)
   uint8_t res = 0xFF;
   for (int attempt = 0; attempt < MODBUS_RETRIES; ++attempt) {
@@ -181,6 +222,7 @@ void readInputRegisters() {
 
 // Function to read discrete inputs (e.g., door statuses)
 void readDiscreteInputs() {
+  while (Serial2.available()) Serial2.read();
   // Attempt to read 2 discrete inputs starting at address 1
   uint8_t res = 0xFF;
   for (int attempt = 0; attempt < MODBUS_RETRIES; ++attempt) {
@@ -209,6 +251,7 @@ void readDiscreteInputs() {
 
 // Function to write holding registers (e.g., setpoints)
 void writeHoldingRegisters() {
+  while (Serial2.available()) Serial2.read();
   // Prepare setpoint values – adjust addresses and values to match your slave's map
   holdingRegs[0] = 30;  // Temperature setpoint (°C)
   holdingRegs[1] = 25;  // Humidity setpoint (%)
