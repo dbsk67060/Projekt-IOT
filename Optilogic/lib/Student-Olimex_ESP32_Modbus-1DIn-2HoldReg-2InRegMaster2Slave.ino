@@ -6,7 +6,7 @@
 #define MAX485_DE 5         // RS485 Driver Enable pin
 #define MAX485_RE_NEG 14    // RS485 Receiver Enable pin (active low)
 #define BAUD_RATE 9600      // Communication speed
-#define MODBUS_SLAVE_ID 1   // Slave device address
+#define MODBUS_SLAVE_ID 4  // Slave device address
 
 // ================ DATA BUFFERS ================
 uint16_t holdingRegs[2];    // Buffer for holding registers (writable)
@@ -38,7 +38,7 @@ void setup() {
   digitalWrite(MAX485_DE, LOW);
 
   // Start serial communication for debugging
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("ESP32 Modbus RTU Communication Initializing...");
 
   // Configure UART2 for Modbus communication

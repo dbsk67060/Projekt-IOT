@@ -1,10 +1,10 @@
 #include <ModbusMaster.h>
 #include <HardwareSerial.h>
 
-#define RS485_TX_PIN 17
-#define RS485_RX_PIN 16
-#define RS485_DE_PIN 4
-#define RS485_RE_PIN 4
+#define RS485_TX_PIN 4
+#define RS485_RX_PIN 36
+#define RS485_DE_PIN 5
+#define RS485_RE_PIN 14
 #define GreenPin 3
 
 ModbusMaster node;
@@ -13,22 +13,22 @@ String Modtaget_data = "off";
 
 void preTransmission() {
   digitalWrite(RS485_DE_PIN, HIGH);
-  //digitalWrite(RS485_RE_PIN, HIGH);
+  digitalWrite(RS485_RE_PIN, HIGH);
 }
 
 void postTransmission() {
   digitalWrite(RS485_DE_PIN, LOW);
-  //digitalWrite(RS485_RE_PIN, LOW);
+  digitalWrite(RS485_RE_PIN, LOW);
 }
 
 void setup() {
   Serial.begin(115200);
-  Serial2.begin(9600, SERIAL_8N1, RS485_RX_PIN, RS485_TX_PIN);
+  Serial2.begin(38400, SERIAL_8N1, RS485_RX_PIN, RS485_TX_PIN);
 
   pinMode(RS485_DE_PIN, OUTPUT);
-  //pinMode(RS485_RE_PIN, OUTPUT);
+  pinMode(RS485_RE_PIN, OUTPUT);
   digitalWrite(RS485_DE_PIN, LOW);
-  //digitalWrite(RS485_RE_PIN, LOW);
+  digitalWrite(RS485_RE_PIN, LOW);
 
   pinMode(GreenPin, OUTPUT);
 
@@ -51,7 +51,7 @@ void loop() {
     Serial.println("Received data: " + Modtaget_data);
     if (Modtaget_data == "on") {
       Serial.println("Anlæg tænder");
-      result = node.writeSingleRegister(3, 5);
+      result = node.writeSingleRegister(368, 3);
 
       if (result == node.ku8MBSuccess) {
         Serial.println("Successfully wrote 3 to register 368");
@@ -62,7 +62,7 @@ void loop() {
       }
     } else if (Modtaget_data == "off") {
       Serial.println("Anlæg slukker");
-      result = node.writeSingleRegister(3, 0);
+      result = node.writeSingleRegister(368, 0);
       if (result == node.ku8MBSuccess) {
         Serial.println("Successfully wrote 0 to register 368");
         digitalWrite(GreenPin, LOW);
