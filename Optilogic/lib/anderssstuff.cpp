@@ -56,7 +56,7 @@ void writeSingleRegister_start() {
   modbus.setTransmitBuffer(0, holdingRegs[0]);
 
   unsigned long startTime = millis();
-  uint8_t result = modbus.writeSingleRegister(367, 3);
+  uint8_t result = modbus.writeSingleRegister(367, 0);
   unsigned long duration = millis() - startTime;
 
   if (result == modbus.ku8MBSuccess) {
@@ -69,7 +69,7 @@ void writeSingleRegister_start() {
 
 // =============== READ INPUT REGISTERS ===============
 // Read one input register (function 04)
-void readInputRegisters() {
+void readtempregister() {
   unsigned long startTime = millis();
   uint8_t result = modbus.readInputRegisters(19, 1); 
   unsigned long duration = millis() - startTime;
@@ -86,6 +86,43 @@ void readInputRegisters() {
   }
 }
 
+
+void readPressure() {
+  unsigned long startTime = millis();
+  uint8_t result = modbus.readInputRegisters(153, 1); 
+  unsigned long duration = millis() - startTime;
+
+  if (result == modbus.ku8MBSuccess) {
+    inputRegs[0] = modbus.getResponseBuffer(0);
+
+    float pressure = inputRegs[0];  // raw value (adjust if scaling required)
+
+    Serial.printf("Input Reg[193] = %u (Pressure: %u psi) (Response time: %lums)\n",
+                  inputRegs[0], inputRegs[0], duration);
+  } else {
+    Serial.printf("Read Input Error (code %u) [Response time: %lums]\n",
+                  result, duration);
+  }
+}
+
+
+
+void readHumidity() {
+  unsigned long startTime = millis();
+  uint8_t result = modbus.readInputRegisters(22, 1); 
+  unsigned long duration = millis() - startTime;
+
+  if (result == modbus.ku8MBSuccess) {
+    inputRegs[0] = modbus.getResponseBuffer(0);
+
+    // Dividing the temperature with 10 in order to get the correct value out
+    float humidity = inputRegs[0];
+    Serial.printf("Input Reg[13] = %u (Humidity:  % ) (Response time: %lums)\n",
+                  inputRegs[0], humidity, duration);
+  } else {
+    Serial.printf("Read Input Error (code %u) [Response time: %lums]\n", result, duration);
+  }
+}
 // =============== LOOP ===============
 void loop() {
   // Step 1: Write start command (holding reg 367)
@@ -95,8 +132,12 @@ void loop() {
   delay(300);
 
   // Step 3: Read input register 19
-  readInputRegisters();
-
+ readtempregister();
+ delay(50);
+  readHumidity();
+delay(50);
+  readPressure();
+  
   // Diagnostic separator
   Serial.println("----------------------------");
 
