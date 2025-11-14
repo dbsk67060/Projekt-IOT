@@ -56,7 +56,7 @@ void writeSingleRegister_start() {
   modbus.setTransmitBuffer(0, holdingRegs[0]);
 
   unsigned long startTime = millis();
-  uint8_t result = modbus.writeSingleRegister(367, 0);
+  uint8_t result = modbus.writeSingleRegister(367, 3);
   unsigned long duration = millis() - startTime;
 
   if (result == modbus.ku8MBSuccess) {
