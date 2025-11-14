@@ -86,22 +86,26 @@ void readtempregister() {
   }
 }
 
+
 void readPressure() {
   unsigned long startTime = millis();
-  uint8_t result = modbus.readInputRegisters(291, 1); 
+  uint8_t result = modbus.readInputRegisters(153, 1); 
   unsigned long duration = millis() - startTime;
 
   if (result == modbus.ku8MBSuccess) {
     inputRegs[0] = modbus.getResponseBuffer(0);
 
-    // Dividing the temperature with 10 in order to get the correct value out
-    float pressure = inputRegs[0];
-    Serial.printf("Input Reg[19] = %u (pressure:  psi) (Response time: %lums)\n",
-                  inputRegs[0], pressure, duration);
+    float pressure = inputRegs[0];  // raw value (adjust if scaling required)
+
+    Serial.printf("Input Reg[193] = %u (Pressure: %u psi) (Response time: %lums)\n",
+                  inputRegs[0], inputRegs[0], duration);
   } else {
-    Serial.printf("Read Input Error (code %u) [Response time: %lums]\n", result, duration);
+    Serial.printf("Read Input Error (code %u) [Response time: %lums]\n",
+                  result, duration);
   }
 }
+
+
 
 void readHumidity() {
   unsigned long startTime = millis();
