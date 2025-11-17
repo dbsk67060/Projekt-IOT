@@ -1,0 +1,41 @@
+1. Tilføj endpoints i ESP32-koden
+
+Du beholder al din Modbus-kode.
+
+Tilføj:
+
+#include <WiFi.h>
+#include <WebServer.h>
+
+WebServer server(80);
+
+void handleFanStart() {
+  fanStart();
+  server.send(200, "text/plain", "Fan started");
+}
+
+void handleFanStop() {
+  writeHoldingReg(367, 1);   // eller hvad der slukker din fan
+  server.send(200, "text/plain", "Fan stopped");
+}
+
+void setup() {
+  // ... din modbus setup
+
+  WiFi.begin("SSID", "PASSWORD");
+  while (WiFi.status() != WL_CONNECTED) delay(100);
+
+  server.on("/fan/start", handleFanStart);
+  server.on("/fan/stop", handleFanStop);
+
+  server.begin();
+}
+
+void loop() {
+  server.handleClient();
+
+  // ... din eksisterende loop
+}
+
+
+ESP32 håndterer nu fan-styring via HTTP.
