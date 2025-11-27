@@ -35,27 +35,27 @@ TOP_DDATA   = f"spBv1.0/{GROUP}/DDATA/{DEVICE}"
 HEALTH_PORT = int(os.getenv("SPB_HEALTH_PORT", "8001"))  # match docker-compose
 
 
-def make_spb_payload(temp, rpm, tryk) -> bytes:
+def make_spb_payload(temp, tryk, rpm) -> bytes:
     """Ægte Sparkplug B payload (hvis sparkplug_b_pb2 findes)."""
     p = spb.Payload()
     m = p.metrics.add(); m.name = "temp"; m.double_value = float(temp)
-    m = p.metrics.add(); m.name = "rpm";  m.long_value   = int(rpm)
     m = p.metrics.add(); m.name = "tryk"; m.double_value = float(tryk)
+    m = p.metrics.add(); m.name = "rpm";  m.long_value   = int(rpm)
     return p.SerializeToString()
 
 
-def make_fallback_payload(temp, rpm, tryk) -> bytes:
+def make_fallback_payload(temp, tryk, rpm) -> bytes:
     """Fallback payload hvis vi ikke har Sparkplug – bare noget læsbart tekst."""
-    text = f"temp={temp:.2f},rpm={rpm},tryk={tryk:.2f}"
+    text = f"temp={temp:.2f},tryk={tryk:.2f}, rpm={rpm}"
     return text.encode("utf-8")
 
 
-def make_payload(temp, rpm, tryk) -> bytes:
+def make_payload(temp, tryk, rpm) -> bytes:
     """Vælg SPB eller fallback alt efter om sparkplug_b_pb2 findes."""
     if SPB_AVAILABLE:
-        return make_spb_payload(temp, rpm, tryk)
+        return make_spb_payload(temp, tryk, rpm)
     else:
-        return make_fallback_payload(temp, rpm, tryk)
+        return make_fallback_payload(temp, tryk, rpm)
 
 
 # -------------- SIMPLE HTTP HEALTH SERVER (NEW) --------------
@@ -101,7 +101,7 @@ def main():
     c.loop_start()
 
     # Send DBIRTH én gang
-    c.publish(TOP_DBIRTH, make_payload(22.5, 1000, 2.2), qos=1, retain=False)
+    c.publish(TOP_DBIRTH, make_payload(22.5, 2.2, 1000), qos=1, retain=False)
     logging.info("Sent DBIRTH -> %s", TOP_DBIRTH)
 
     try:
