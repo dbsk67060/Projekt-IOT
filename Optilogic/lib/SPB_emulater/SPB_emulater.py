@@ -107,13 +107,13 @@ def main():
     try:
         while True:
             temp = 22.0 + random.random() * 3.0
-            rpm  = 900 + int(random.random() * 300)
             tryk = 2.0 + random.random() * 0.5
+            rpm  = 900 + int(random.random() * 300)
 
-            c.publish(TOP_DDATA, make_payload(temp, rpm, tryk), qos=1, retain=False)
+            c.publish(TOP_DDATA, make_payload(temp, tryk, rpm), qos=1, retain=False)
             logging.info(
-                "Sent DDATA: temp=%.2f rpm=%d tryk=%.2f",
-                temp, rpm, tryk,
+                "Sent DDATA: temp=%.2f tryk=%.2f rpm=%d ",
+                temp, tryk, rpm,
             )
             time.sleep(5)
     except KeyboardInterrupt:

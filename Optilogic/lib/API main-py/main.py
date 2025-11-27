@@ -59,7 +59,6 @@ async def query_with_asyncpg():
             """
             SELECT 
                 temp        AS temperature,
-                hum         AS humidity,
                 tryk        AS pressure,
                 rpm         AS airflow,
                 timestamp
