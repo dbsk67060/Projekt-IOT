@@ -19,7 +19,7 @@ except ImportError:
     SPB_AVAILABLE = False
     logging.warning(
         "sparkplug_b_pb2 not found, SPB encoding disabled. "
-        "Will publish simple text payloads instead of real Sparkplug B."
+        "Will publish simple text payloads instead of real Sparkplug B." 
     )
 
 # Miljø – match your docker-compose (MQTT_HOST=mqtt)
@@ -47,7 +47,7 @@ def make_spb_payload(temp, tryk, rpm) -> bytes:
 def make_fallback_payload(temp, tryk, rpm) -> bytes:
     """Fallback payload hvis vi ikke har Sparkplug – bare noget læsbart tekst."""
     text = f"temp={temp:.2f},tryk={tryk:.2f}, rpm={rpm}"
-    return text.encode("utf-8")
+    return text.encode("utf-8") 
 
 
 def make_payload(temp, tryk, rpm) -> bytes:

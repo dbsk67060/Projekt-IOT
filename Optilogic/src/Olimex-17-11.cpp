@@ -46,7 +46,7 @@ bool readRegistersBlock(uint16_t regs[11]) {
     regs[i] = modbus.getResponseBuffer(i);
   }
   return true;
-}
+} 
 
 // Ekstraher værdier fra blokken
 float getTemperature(uint16_t regs[11]) { return regs[9] / 10.0f; } // reg 19
