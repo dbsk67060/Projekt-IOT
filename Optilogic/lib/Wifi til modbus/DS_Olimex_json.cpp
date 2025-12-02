@@ -3,7 +3,7 @@
 #include <PubSubClient.h>
 #include <ModbusMaster.h>
 
-// ================= MODBUS / RS485 CONFIG =================
+// ================= MODBUS / RS485 CONFIG ===============
 #define RX_PIN 36
 #define TX_PIN 4
 #define MAX485_DE 5
