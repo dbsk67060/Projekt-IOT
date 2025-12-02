@@ -1,7 +1,9 @@
-#include <ModbusMaster.h>
+#include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <ModbusMaster.h>
 
+// NOTE: Ensure PubSubClient library is installed (Arduino Library Manager or PlatformIO lib_deps).
 // ================= MODBUS / RS485 CONFIG =================
 #define RX_PIN 36
 #define TX_PIN 4
@@ -13,10 +15,10 @@
 ModbusMaster modbus;
 
 // ================= WiFi + MQTT =================
-const char* WIFI_SSID = "SSID_HER";
-const char* WIFI_PASS = "PASSWORD_HER";
+const char* WIFI_SSID = "FMS";
+const char* WIFI_PASS = "FMS12345";
 
-const char* MQTT_HOST = "192.168.0.10";   // Mosquitto broker
+const char* MQTT_HOST = "192.168.3.100";   // Mosquitto broker
 const int   MQTT_PORT = 1883;
 
 WiFiClient espClient;
