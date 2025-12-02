@@ -62,9 +62,7 @@ float getAirFlow(uint16_t regs[11])     { return regs[5]; }
 // ================= SPECIALIZED FUNCTIONS =================
 void fanStart() {
   Serial.println("Starter ventilation (fanStart)");
-  // Skriv til holding register 367 med værdien 0 (brug ModbusMaster API)
-  // Hvis din tidligere kode brugte writeHoldingReg(367, 0) kan denne linje erstatte det
-  uint8_t result = modbus.writeSingleRegister(367, 0);
+  uint8_t result = modbus.writeSingleRegister(367, 0); // Skriv til holding register 367 med værdien 0 for sluk og 3 for start.
   if (result == modbus.ku8MBSuccess) {
     Serial.println("Ventilation startet: register skriv ok");
   } else {
