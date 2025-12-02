@@ -62,7 +62,7 @@ float getAirFlow(uint16_t regs[11])     { return regs[5]; }
 // ================= SPECIALIZED FUNCTIONS =================
 void fanStart() {
   Serial.println("Starter ventilation (fanStart)");
-  uint8_t result = modbus.writeSingleRegister(367, 0); // Skriv til holding register 367 med værdien 0 for sluk og 3 for start.
+  uint8_t result = modbus.writeSingleRegister(367, 3); // Skriv til holding register 367 med værdien 0 for sluk og 3 for start.
   if (result == modbus.ku8MBSuccess) {
     Serial.println("Ventilation startet: register skriv ok");
   } else {
@@ -71,12 +71,14 @@ void fanStart() {
   }
 }
 
-// ================= BUILD PAYLOAD (fallback) =================
-String makePayload(float t, float p, float rpm) {
-  String s = "temp=" + String(t, 1)
-           + ",tryk=" + String(p, 1)
-           + ",rpm="  + String((int)rpm);
-  return s;
+// ================= BUILD JSON PAYLOAD =================
+String makeJsonPayload(float t, float p, float rpm) {
+    String json = "{";
+    json += "\"temp\":" + String(t, 1) + ",";
+    json += "\"tryk\":" + String(p, 1) + ",";
+    json += "\"rpm\":"  + String((int)rpm);
+    json += "}";
+    return json;
 }
 
 // ================= MQTT CONNECT =================
@@ -141,7 +143,7 @@ void loop() {
   float p  = getPressure(regs);
   float af = getAirFlow(regs);
 
-  String payload = makePayload(t, p, af);
+  String payload = makeJsonPayload(t, p, af);
   Serial.print("Sender payload: ");
   Serial.println(payload);
   mqtt.publish(TOP_DDATA.c_str(), payload.c_str(), false);
