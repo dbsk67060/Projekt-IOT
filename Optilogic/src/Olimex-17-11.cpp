@@ -49,9 +49,9 @@ bool readRegistersBlock(uint16_t regs[11]) {
 } 
 
 // Ekstraher værdier fra blokken
-float getTemperature(uint16_t regs[11]) { return regs[9] / 10.0f; } // reg 19
-float getPressure(uint16_t regs[11])    { return regs[3] / 10.0f; } // reg 13
-float getAirFlow(uint16_t regs[11])     { return regs[5]; }          // reg 15
+float getTemperature(uint16_t regs[11]) { return regs[9] / 10.0f; } // reg 19 fordi det læses i blokken 10-20 bliver det reg[9] for 19
+float getPressure(uint16_t regs[11])    { return regs[3] / 10.0f; } // reg 13 fordi det læses i blokken 10-20 bliver det reg[3] for 13
+float getAirFlow(uint16_t regs[11])     { return regs[5]; }          // reg 15 fordi det læses i blokken 10-20 bliver det reg[5] for 15
 
 // ================= SETUP =================
 void setup() {
