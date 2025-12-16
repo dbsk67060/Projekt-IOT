@@ -5,10 +5,10 @@
 
 // NOTE: Ensure PubSubClient library is installed (Arduino Library Manager or PlatformIO lib_deps).
 // ================= MODBUS / RS485 CONFIG =================
-#define RX_PIN 36     //kommunikations pin for ESP32
-#define TX_PIN 4   //kommunikations pin for ESP32
-#define MAX485_DE 5 
-#define MAX485_RE_NEG 14
+#define RX_PIN 36     //kommunikations pin for modtagelse af data ESP32
+#define TX_PIN 4   //kommunikations pin afsendelse for ESP32
+#define MAX485_DE 5 //tænder reciever
+#define MAX485_RE_NEG 14 //slukker reciever 
 #define BAUD_RATE 9600 // Modbus standard baud rate
 #define MODBUS_SLAVE_ID 1 // Slave ID ventilatoren 
 
@@ -45,11 +45,11 @@ void postTransmission() {
 }
 
 // ================= GENERIC MODBUS =================
-bool readRegistersBlock(uint16_t regs[11]) {   // Læs 11 input registre fra adressen 10
+bool readRegistersBlock(uint16_t regs[11]) {   // Læs 11 input registre fra starter ved adressen 10
   uint8_t result = modbus.readInputRegisters(10, 11);
   if (result != modbus.ku8MBSuccess) return false;   // hvis Læsning fejlede return false
   for (int i = 0; i < 11; i++) {  // gem værdier i array
-    regs[i] = modbus.getResponseBuffer(i); // hent register værdi
+    regs[i] = modbus.getResponseBuffer(i); // hent register værdi og gem i array
   }
   return true; // læsning succesfuld
 }
@@ -75,7 +75,7 @@ void fanStart() {
 String makeJsonPayload(float t, float p, float rpm) { // lav json payload
     String json = "{";
     json += "\"temp\":" + String(t, 1) + ",";      // tilføj temperatur til json
-    json += "\"tryk\":" + String(p, 1) + ",";    // tilføj tryk til json
+    json += "\"tryk\":" + String(p, 1) + ",";    // tilføj tryk til json (string(p, 1) konverterer float til string med 1 decimal)
     json += "\"rpm\":"  + String((int)rpm);       // tilføj rpm til json
     json += "}"; //afslut json
     return json;   // return json string til kaldende funktion
@@ -139,9 +139,9 @@ void loop() {
     return; // afslut loop og prøv igen
   }
 
-  float t  = getTemperature(regs); // få temperatur fra registre
-  float p  = getPressure(regs); // få tryk fra registre
-  float af = getAirFlow(regs); // få airflow fra registre
+  float t  = getTemperature(regs); // få temperatur fra arrays, funktioner defineret på  linje 58 til 60
+  float p  = getPressure(regs); // få tryk fra arrays
+  float af = getAirFlow(regs); // få airflow fra arrays
 
   String payload = makeJsonPayload(t, p, af); // lav json payload
   Serial.print("Sender payload: "); // besked til terminal
