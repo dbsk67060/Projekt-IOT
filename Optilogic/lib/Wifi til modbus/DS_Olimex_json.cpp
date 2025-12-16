@@ -3,8 +3,7 @@
 #include <PubSubClient.h>
 #include <ModbusMaster.h>
 
-// NOTE: Ensure PubSubClient library is installed (Arduino Library Manager or PlatformIO lib_deps).
-// ================= MODBUS / RS485 CONFIG =================
+// ================= MODBUS / RS485 CONFIG ===============
 #define RX_PIN 36
 #define TX_PIN 4
 #define MAX485_DE 5
@@ -18,20 +17,19 @@ ModbusMaster modbus;
 const char* WIFI_SSID = "FMS";
 const char* WIFI_PASS = "FMS12345";
 
-const char* MQTT_HOST = "192.168.3.100";   // Mosquitto broker
+const char* MQTT_HOST = "192.168.3.100";
 const int   MQTT_PORT = 1883;
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
 
-// Sparkplug topics (samme format som emulator)
+// Sparkplug topic-format
 const char* GROUP  = "plantA";
 const char* DEVICE = "olimex-device";
 
 String TOP_DBIRTH = String("spBv1.0/") + GROUP + "/DBIRTH/" + DEVICE;
 String TOP_DDATA  = String("spBv1.0/") + GROUP + "/DDATA/"  + DEVICE;
 String TOP_DDEATH = String("spBv1.0/") + GROUP + "/DDEATH/" + DEVICE;
-
 
 // ================= RS485 CONTROL =================
 void preTransmission() {
@@ -54,42 +52,38 @@ bool readRegistersBlock(uint16_t regs[11]) {
   return true;
 }
 
-// Extract values
 float getTemperature(uint16_t regs[11]) { return regs[9] / 10.0f; }
 float getPressure(uint16_t regs[11])    { return regs[3] / 10.0f; }
 float getAirFlow(uint16_t regs[11])     { return regs[5]; }
 
 // ================= SPECIALIZED FUNCTIONS =================
 void fanStart() {
-  Serial.println("Starter ventilation (fanStart)");
-  uint8_t result = modbus.writeSingleRegister(367, 0); // Skriv til holding register 367 med værdien 0 for sluk og 3 for start.
+  uint8_t result = modbus.writeSingleRegister(367, 0);
   if (result == modbus.ku8MBSuccess) {
-    Serial.println("Ventilation startet: register skriv ok");
+    Serial.println("Ventilation startet");
   } else {
-    Serial.print("Ventilation start fejlede, modbus fejlkode: ");
+    Serial.print("Fejl ved start, code: ");
     Serial.println(result);
   }
 }
 
-// ================= BUILD PAYLOAD (fallback) =================
-String makePayload(float t, float p, float rpm) {
-  String s = "temp=" + String(t, 1)
-           + ",tryk=" + String(p, 1)
-           + ",rpm="  + String((int)rpm);
-  return s;
+// ================= BUILD JSON PAYLOAD =================
+String makeJsonPayload(float t, float p, float rpm) {
+    String json = "{";
+    json += "\"temp\":" + String(t, 1) + ",";
+    json += "\"tryk\":" + String(p, 1) + ",";
+    json += "\"rpm\":"  + String((int)rpm);
+    json += "}";
+    return json;
 }
 
 // ================= MQTT CONNECT =================
 void mqttReconnect() {
-  Serial.println("MQTT: Forsøger at forbinde til broker...");
   while (!mqtt.connected()) {
-    Serial.println("MQTT: Ikke forbundet, prøver igen...");
-    if (mqtt.connect("olimex-client", NULL, NULL, 
+    if (mqtt.connect("olimex-client", NULL, NULL,
                      TOP_DDEATH.c_str(), 1, false, "DDEATH")) {
 
       mqtt.publish(TOP_DBIRTH.c_str(), "DBIRTH", false);
-      Serial.println("MQTT: DBIRTH sendt");
-      Serial.println("MQTT: Forbundet til broker!");
     }
     delay(1000);
   }
@@ -109,19 +103,11 @@ void setup() {
   modbus.preTransmission(preTransmission);
   modbus.postTransmission(postTransmission);
 
-  // Start ventilation kort efter Modbus init
   fanStart();
   delay(300);
 
   WiFi.begin(WIFI_SSID, WIFI_PASS);
-  Serial.println("Forbinder til WiFi...");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(200);
-  }
-  Serial.println();
-  Serial.print("WiFi forbundet. IP: ");
-  Serial.println(WiFi.localIP());
+  while (WiFi.status() != WL_CONNECTED) delay(200);
 
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
 }
@@ -141,11 +127,8 @@ void loop() {
   float p  = getPressure(regs);
   float af = getAirFlow(regs);
 
-  String payload = makePayload(t, p, af);
-  Serial.print("Sender payload: ");
-  Serial.println(payload);
+  String payload = makeJsonPayload(t, p, af);
   mqtt.publish(TOP_DDATA.c_str(), payload.c_str(), false);
-  Serial.println("Payload sendt til MQTT broker.");
 
   delay(2000);
 }
